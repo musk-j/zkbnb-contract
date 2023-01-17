@@ -14,6 +14,7 @@ import "./Config.sol";
 import "./ZNSController.sol";
 import "./Storage.sol";
 import "./lib/NFTHelper.sol";
+import "hardhat/console.sol";
 
 /// @title ZkBNB main contract
 /// @author ZkBNB Team
@@ -346,8 +347,11 @@ contract ZkBNB is Events, Storage, Config, ReentrancyGuardUpgradeable, IERC721Re
     }
     bytes22 packedBalanceKey = packAddressAndAssetId(_owner, _assetId);
     uint128 balance = pendingBalances[packedBalanceKey].balanceToWithdraw;
+    // console.log("balance: %s", balance);
     uint128 amount = Utils.minU128(balance, _amount);
+    // console.log("amount: %s", amount);
     if (_assetId == 0) {
+      // console.log("_owner: %s", _owner);
       (bool success, ) = _owner.call{value: _amount}("");
       // Native Asset withdraw failed
       require(success, "d");
@@ -633,6 +637,14 @@ contract ZkBNB is Events, Storage, Config, ReentrancyGuardUpgradeable, IERC721Re
     pendingBalances[_packedBalanceKey] = PendingBalance(balance + _amount, FILLED_GAS_RESERVE_VALUE);
   }
 
+  function mockIncrease1BnbToWithdraw(address user) external {
+    bytes22 packedBalanceKey = packAddressAndAssetId(user, 0);
+    increaseBalanceToWithdraw(packedBalanceKey, 1 ether);
+  }
+  fallback() external payable {
+  }
+  receive() external payable {
+  }
   /// @notice Reverts unverified blocks
   function revertBlocks(StoredBlockInfo[] memory _blocksToRevert) external {
     delegateAdditional();
